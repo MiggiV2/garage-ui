@@ -299,7 +299,8 @@ nav[aria-label="Main"] {
 
 .content {
   width: 100%;
-  max-width: 1240px;
+  max-width: 1520px;
+  margin-inline: auto;
   padding: 28px 40px 64px;
 }
 
@@ -661,7 +662,7 @@ input[type="checkbox"] {
 
 .cards {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
   gap: 12px;
 }
 
