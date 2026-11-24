@@ -77,6 +77,11 @@ func adminProxy(cfg config.Config) http.Handler {
 			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
 			return
 		}
+		// A custom header cannot be sent cross-site without a CORS preflight, which this server never grants.
+		if method != http.MethodGet && r.Header.Get("X-Requested-With") != "garage-ui" {
+			http.Error(w, "missing X-Requested-With header", http.StatusForbidden)
+			return
+		}
 		proxy.ServeHTTP(w, r)
 	})
 }

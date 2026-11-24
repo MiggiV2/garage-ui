@@ -28,6 +28,7 @@ describe("api", () => {
     const [url, init] = fetch.mock.calls[0];
     expect(url).toBe("/api/v2/AllowBucketKey");
     expect(init.method).toBe("POST");
+    expect(init.headers["X-Requested-With"]).toBe("garage-ui");
     expect(JSON.parse(init.body)).toEqual({
       bucketId: "bucket",
       accessKeyId: "GK1",

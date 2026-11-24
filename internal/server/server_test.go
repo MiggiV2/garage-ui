@@ -49,6 +49,7 @@ func TestProxyForwardsAllowedOperationWithAdminToken(t *testing.T) {
 
 	req := httptest.NewRequest(http.MethodPost, "/api/v2/UpdateBucket?id=abc", strings.NewReader(`{"quotas":null}`))
 	req.Header.Set("Authorization", "Bearer client-supplied")
+	req.Header.Set("X-Requested-With", "garage-ui")
 	rec := httptest.NewRecorder()
 	h.ServeHTTP(rec, req)
 
@@ -65,6 +66,34 @@ func TestProxyForwardsAllowedOperationWithAdminToken(t *testing.T) {
 	want := recordedRequest{http.MethodPost, "/v2/UpdateBucket", "id=abc", "Bearer secret-token", `{"quotas":null}`}
 	if got != want {
 		t.Fatalf("upstream request mismatch\n got: %+v\nwant: %+v", got, want)
+	}
+}
+
+func TestProxyRejectsMutationsWithoutCSRFHeader(t *testing.T) {
+	garage, requests := fakeGarage(t)
+	h := newHandler(t, baseConfig(garage.URL))
+
+	req := httptest.NewRequest(http.MethodPost, "/api/v2/DeleteBucket?id=abc", strings.NewReader(`{}`))
+	req.Header.Set("Content-Type", "text/plain")
+	rec := httptest.NewRecorder()
+	h.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusForbidden {
+		t.Fatalf("expected 403, got %d", rec.Code)
+	}
+	if len(*requests) != 0 {
+		t.Fatal("cross-site style request must not reach garage")
+	}
+}
+
+func TestProxyAllowsReadsWithoutCSRFHeader(t *testing.T) {
+	garage, requests := fakeGarage(t)
+	h := newHandler(t, baseConfig(garage.URL))
+
+	rec := httptest.NewRecorder()
+	h.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/api/v2/ListBuckets", nil))
+	if len(*requests) != 1 {
+		t.Fatalf("expected GET to be forwarded, got %d upstream requests", len(*requests))
 	}
 }
 

@@ -29,7 +29,10 @@ async function call<T>(method: "GET" | "POST", operation: string, query: Query =
   const qs = params.toString();
   const response = await fetch(`/api/v2/${operation}${qs ? `?${qs}` : ""}`, {
     method,
-    headers: body === undefined ? undefined : { "Content-Type": "application/json" },
+    headers: {
+      "X-Requested-With": "garage-ui",
+      ...(body === undefined ? {} : { "Content-Type": "application/json" }),
+    },
     body: body === undefined ? undefined : JSON.stringify(body),
   });
 
